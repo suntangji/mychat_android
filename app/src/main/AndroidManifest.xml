@@ -16,7 +16,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".FruitActivity"></activity>
+        <activity android:name=".RoomActivity" />
+        <activity android:name=".ChatActivity"
+            android:label="聊天室"></activity>
     </application>
-
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 </manifest>

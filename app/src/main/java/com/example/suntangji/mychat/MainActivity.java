@@ -29,11 +29,11 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
-    private Fruit[] fruits = {new Fruit("Apple", R.drawable.ic_launcher_foreground),
-                                new Fruit("Banana", R.drawable.ic_launcher_background),
-                                new Fruit("Orange", R.drawable.ic_launcher_foreground)};
-    private List<Fruit> fruitList = new ArrayList<>();
-    private FruitAdapter adapter;
+    private Room[] rooms = {new Room("Apple", R.drawable.ic_launcher_foreground),
+                                new Room("Banana", R.drawable.ic_launcher_background),
+                                new Room("Orange", R.drawable.ic_launcher_foreground)};
+    private List<Room> roomList = new ArrayList<>();
+    private RoomAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +66,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // 卡片话
-        initFruits();
+        initRooms();
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new FruitAdapter(fruitList);
+        adapter = new RoomAdapter(roomList);
         recyclerView.setAdapter(adapter);
         // 刷新操作
         swipeRefresh = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh);
@@ -79,21 +79,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
 
-                 refreshFruits();
+                 refreshRooms();
             }
         });
     }
-    private void initFruits() {
-        fruitList.clear();
-        for (int i = 0; i < 50; i++) {
+    private void initRooms() {
+        roomList.clear();
+        for (int i = 0; i < 5; i++) {
             Random random = new Random();
-            int index = random.nextInt(fruits.length);
-            fruitList.add(fruits[index]);
+            int index = random.nextInt(rooms.length);
+            roomList.add(rooms[index]);
         }
     }
     // refresh 模拟
-    private void refreshFruits() {
-        Log.d("Main", "refreshFruits: run");
+    private void refreshRooms() {
+        Log.d("Main", "refreshRooms: run");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -106,10 +106,9 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        initFruits();
+                        initRooms();
                         adapter.notifyDataSetChanged();
                         swipeRefresh.setRefreshing(false);
-                        Log.d("setrefrsh", "run: quxiao");
                     }
                 });
             }

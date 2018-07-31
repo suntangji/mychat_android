@@ -14,9 +14,9 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-public  class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder> {
+public  class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
     private Context mContext;
-    private List<Fruit> mFruitList;
+    private List<Room> mFruitList;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
@@ -29,7 +29,7 @@ public  class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder>
             fruitName = (TextView) view.findViewById(R.id.fruit_name);
         }
     }
-    public FruitAdapter(List<Fruit> fruitList) {
+    public RoomAdapter(List<Room> fruitList) {
         mFruitList = fruitList;
     }
 
@@ -38,16 +38,18 @@ public  class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder>
         if (mContext == null) {
             mContext = parent.getContext();
         }
-        View view = LayoutInflater.from(mContext).inflate(R.layout.fruit_item, parent, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.room_item, parent, false);
         final ViewHolder holder = new ViewHolder(view);
         holder.cardView.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 int position = holder.getAdapterPosition();
-                Fruit fruit = mFruitList.get(position);
-                Intent intent = new Intent(mContext, FruitActivity.class);
-                intent.putExtra(FruitActivity.FRUIT_NAME, fruit.getName());
-                intent.putExtra(FruitActivity.FRUIT_IMAGE_ID, fruit.getImageId());
+                Room fruit = mFruitList.get(position);
+                Intent intent = new Intent(mContext,ChatActivity.class);
+
+//                Intent intent = new Intent(mContext, RoomActivity.class);
+//                intent.putExtra(RoomActivity.FRUIT_NAME, fruit.getName());
+//                intent.putExtra(RoomActivity.FRUIT_IMAGE_ID, fruit.getImageId());
                 mContext.startActivities(new Intent[]{intent});
 
 
@@ -59,7 +61,7 @@ public  class FruitAdapter extends RecyclerView.Adapter<FruitAdapter.ViewHolder>
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Fruit fruit = mFruitList.get(position);
+        Room fruit = mFruitList.get(position);
         holder.fruitName.setText(fruit.getName());
         Glide.with(mContext).load(fruit.getImageId()).into(holder.fruitImage);
     }

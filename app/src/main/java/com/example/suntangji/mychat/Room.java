@@ -17,10 +17,10 @@ import java.util.List;
  * Created by suntangji on 2018/7/28.
  */
 
-public class Fruit {
+public class Room {
     private String name;
     private int imageId;
-    public Fruit(String name, int imageId) {
+    public Room(String name, int imageId) {
         this.name = name;
         this.imageId = imageId;
     }

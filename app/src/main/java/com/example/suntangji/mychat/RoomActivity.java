@@ -12,14 +12,14 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-public class FruitActivity extends AppCompatActivity {
+public class RoomActivity extends AppCompatActivity {
     public static final String FRUIT_NAME = "fruit_name";
 
     public static final String FRUIT_IMAGE_ID = "fruit_image_id";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fruit);
+        setContentView(R.layout.activity_room);
         Intent intent = getIntent();
         String fruitName = intent.getStringExtra(FRUIT_NAME);
         int fruitImageId = intent.getIntExtra(FRUIT_IMAGE_ID, 0);
