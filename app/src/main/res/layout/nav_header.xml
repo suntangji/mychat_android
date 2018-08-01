@@ -4,23 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:padding="10dp"
-    android:background="@color/cornflower_blue">
+    android:background="@color/cornflower_blue"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/icon_image"
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:src="@drawable/user"
+
         android:layout_centerInParent="true"/>
 
     <TextView
-        android:id="@+id/mail"
+        android:id="@+id/user"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/icon_image"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="11dp"
         android:layout_marginBottom="11dp"
-        android:text="Tony grean"
+        android:text="Tony"
         android:textColor="#FFF"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        />
 
 </RelativeLayout>

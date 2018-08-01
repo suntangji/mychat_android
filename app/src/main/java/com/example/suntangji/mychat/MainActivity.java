@@ -1,6 +1,8 @@
 package com.example.suntangji.mychat;
 
-import android.graphics.Bitmap;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -8,9 +10,10 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-//import android.widget.Toolbar;
+
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -18,10 +21,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.GridLayout;
+import android.widget.EditText;
+
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -35,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Room> roomList = new ArrayList<>();
     private RoomAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-              actionBar.setDisplayHomeAsUpEnabled(true);
-              actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         }
         // navView.setCheckedItem(R.id.nav_call);
         navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -79,10 +85,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
 
-                 refreshRooms();
+                refreshRooms();
             }
         });
+
+        // username
+
+        SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
+        Global.username = pref.getString("name", "");
+        if (Global.username.equals("")) {
+            setName();
+            Log.e("user", Global.username );
+        }
+
+        View headerView = navView.getHeaderView(0);
+        TextView textview = (TextView) headerView.findViewById(R.id.user);
+        textview.setText(Global.username);
+
     }
+
+
+
     private void initRooms() {
         roomList.clear();
         for (int i = 0; i < 5; i++) {
@@ -140,7 +163,36 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
+    private void setName() {
+        View view = getLayoutInflater().inflate(R.layout.input_dialog, null);
+        final EditText editText = (EditText) view.findViewById(R.id.input_dialog);
+        final String[] ret = new String[1];
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("请输入昵称")//设置对话框的标题
+                .setView(view)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //dialog.dismiss();
+                        Toast.makeText(MainActivity.this, "必须设置昵称", Toast.LENGTH_SHORT).show();
+                        setName();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String content = editText.getText().toString();
+                        Toast.makeText(MainActivity.this, content, Toast.LENGTH_SHORT).show();
+                        SharedPreferences.Editor editor = getSharedPreferences("user", MODE_PRIVATE).edit();
+                        editor.putString("name", content);
+                        editor.apply();
+                        Global.username = content;
+                        Log.e("name", Global.username );
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
+    }
 
 
 }

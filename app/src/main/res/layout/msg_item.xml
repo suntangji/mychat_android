@@ -11,7 +11,6 @@
         android:id="@+id/left_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="20dp"
         android:gravity="left">
 
         <de.hdodenhof.circleimageview.CircleImageView
@@ -36,7 +35,7 @@
             <TextView
                 android:id="@+id/left_msg"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/message_right"
@@ -49,7 +48,6 @@
         android:id="@+id/right_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="20dp"
         android:gravity="right">
 
         <FrameLayout
@@ -58,7 +56,7 @@
             <TextView
                 android:id="@+id/right_msg"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:background="@drawable/message_left"
                 android:gravity="center"
                 android:layout_marginTop="20dp" />

@@ -2,6 +2,7 @@ package com.example.suntangji.mychat;
 
 import android.content.DialogInterface;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Message;
 import android.os.NetworkOnMainThreadException;
 import android.support.v7.app.ActionBar;
@@ -11,7 +12,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,7 +23,6 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -31,7 +30,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -58,6 +59,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private static final int UPDATE = 1;
     private static final int ERROR = 0;
+    private Handler mHandler;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -65,7 +67,10 @@ public class ChatActivity extends AppCompatActivity {
                 case UPDATE:
                     // g更新 UI
                     Msg m = new Msg(msg.obj.toString(), msg.arg1);
+                    Log.e(TAG, "handleMessage: " + m.getContent() );
                     msgList.add(m);
+                    adapter.notifyItemInserted(msgList.size() - 1);
+                    msgRecyclerView.scrollToPosition(msgList.size() - 1);
 
                     break;
                 case ERROR:
@@ -87,7 +92,11 @@ public class ChatActivity extends AppCompatActivity {
             //actionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
         }
 
-        connect();
+        HandlerThread thread = new HandlerThread("MyHandlerThread");
+        thread.start();//创建一个HandlerThread并启动它
+        mHandler = new Handler(thread.getLooper());//使用HandlerThread的looper对象创建Handler，如果使用默认的构造方法，很有可能阻塞UI线程
+        mHandler.post(connectThread);//将线程post到Handler中
+
 
         inputText = (EditText) findViewById(R.id.input_text);
         send = (Button) findViewById(R.id.send);
@@ -119,6 +128,20 @@ public class ChatActivity extends AppCompatActivity {
         });
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            socket.close();
+            mHandler.removeCallbacks(sendThread);
+            mHandler.removeCallbacks(recvThread);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.room_menu, menu);
         return true;
@@ -128,6 +151,12 @@ public class ChatActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 finish();
                 break;
             case R.id.quit:
@@ -138,98 +167,123 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    private void initClient() {
-        Log.w(TAG, "initClient: ");
-        // 接收线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    String recvMsg = null;
-                    String line;
-                    try {
-                        while ((line = in.readLine())!= null){
-                            recvMsg += line;
-                            if (line.equals("}")) {
-                                break;
-                            }
+    private Runnable recvThread = new Runnable() {
+        @Override
+        public void run() {
+            Log.e(TAG, "run: recv");
+            while (true) {
+                String recvMsg = "";
+                String line;
+                try {
+                    while ((line = in.readLine())!= null){
+                        recvMsg += line;
+                        if (line.equals("}")) {
+                            break;
                         }
-                    }catch (IOException e) {
+                    }
+                }catch (IOException e) {
+                    Log.e(TAG, "run: exception");
+                    e.printStackTrace();
+                }
+                Log.e(TAG, recvMsg );
+
+                Message msg = new Message();
+                msg.what = UPDATE;
+                msg.arg1 = Msg.TYPE_RECEIVED;
+                msg.obj = recvMsg;
+                handler.sendMessage(msg);
+
+            }
+        }
+    };
+
+    private Runnable sendThread = new Runnable() {
+        @Override
+        public void run() {
+            Json default_json = new Json();
+            default_json.setCmd("1");
+            default_json.setName("test2");
+            default_json.setTo("test");
+            default_json.setContent("大家好，我是" + Global.username);
+            Gson default_gson = new Gson();
+            String default_jsonMsg = default_gson.toJson(default_json);
+
+            try {
+                out.write(default_jsonMsg.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+            while (true) {
+                synchronized (msgDeque) {
+                    while (msgDeque.size() == 0) {
+                        try {
+                            msgDeque.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            msgDeque.notify();
+                        }
+                    }
+
+                    Msg msg = msgDeque.poll();
+                    Json json = new Json();
+                    json.setCmd("1");
+                    json.setName("test2");
+                    json.setTo("test");
+                    json.setContent(msg.getContent());
+                    Gson gson = new Gson();
+                    String jsonMeg = gson.toJson(json);
+                    Log.e("json", jsonMeg);
+                    try {
+                        out.write(jsonMeg.getBytes());
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Message msg = new Message();
-                    msg.what = UPDATE;
-                    msg.arg1 = Msg.TYPE_RECEIVED;
-                    msg.obj = recvMsg;
-                    handler.sendMessage(msg);
 
                 }
             }
-        }).start();
-        // 发送线程
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    synchronized (msgDeque) {
-                        while (msgDeque.size() == 0) {
-                            try {
-                                msgDeque.wait();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                                msgDeque.notify();
-                            }
-                        }
+        }
+    };
 
-                        Msg msg = msgDeque.poll();
-                        Log.w("msg", msg.getContent());
-                        Json json = new Json();
-                        json.setCmd("1");
-                        json.setName("test");
-                        json.setTo("test");
-                        json.setContent(msg.getContent());
-                        Gson gson = new Gson();
-                        gson.toJson(json);
-                        Log.w("json", gson.toString());
-                        try {
-                            out.write(gson.toString().getBytes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                }
-            }
-        }).start();
+    private void initClient() {
+        Log.w(TAG, "initClient: ");
+        mHandler.post(sendThread);
+        mHandler.post(recvThread);
     }
-    private void connect() {
-        Log.w(TAG, "connect: ");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Log.w(TAG, "run: ");
-                    socket = new Socket("47.93.204.99",5000);
-                    socket.setSoTimeout(10000);
-                    if (socket.isConnected() && !socket.isClosed()) {
-                       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                       out = socket.getOutputStream();
-                        Log.w(TAG, "run: before init");
-                        initClient();
-                   }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NetworkOnMainThreadException e) {
-                    Log.d(TAG, "run: NetworkException");
-                    Message msg = new Message();
-                    msg.what = ERROR;
-                    handler.sendMessage(msg);
-                } finally {
-                    Log.d(TAG, "run: final");
-                }
+
+    private Runnable connectThread = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Log.w(TAG, "run: ");
+//                    socket = new Socket("47.93.204.99",5000);
+//                    socket.setSoTimeout(10000);
+//                    if (socket.isConnected() && !socket.isClosed()) {
+//                       in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                       out = socket.getOutputStream();
+//                        Log.w(TAG, "run: before init");
+//                        initClient();
+//                   }
+
+                socket = new Socket();
+                SocketAddress socketAddress = new InetSocketAddress("suntangji.me", 5000);
+                socket.connect(socketAddress, 5*1000);//over 5sec error
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = socket.getOutputStream();
+                initClient();
+
+            } catch (Exception e) {
+                Log.d(TAG, "run: NetworkException");
+                Message msg = new Message();
+                msg.what = ERROR;
+                handler.sendMessage(msg);
+            } finally {
+                Log.e(TAG, "run: final");
             }
-        }).start();
-    }
+        }
+
+    };
     private void showError() {
         Log.w(TAG, "showError: ");
         AlertDialog dialog = new AlertDialog.Builder(this)
