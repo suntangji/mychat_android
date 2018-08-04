@@ -45,11 +45,11 @@ public  class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
             public void onClick(View v) {
                 int position = holder.getAdapterPosition();
                 Room fruit = mFruitList.get(position);
-                Intent intent = new Intent(mContext,ChatActivity.class);
+                Intent intent = new Intent(mContext,RoomActivity.class);
 
-//                Intent intent = new Intent(mContext, RoomActivity.class);
-//                intent.putExtra(RoomActivity.FRUIT_NAME, fruit.getName());
-//                intent.putExtra(RoomActivity.FRUIT_IMAGE_ID, fruit.getImageId());
+//                Intent intent = new Intent(mContext, SingleChatActivity.class);
+//                intent.putExtra(SingleChatActivity.FRUIT_NAME, fruit.getName());
+//                intent.putExtra(SingleChatActivity.FRUIT_IMAGE_ID, fruit.getImageId());
                 mContext.startActivities(new Intent[]{intent});
 
 

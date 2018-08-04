@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 
 import android.widget.TextView;
@@ -34,9 +35,11 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
-    private Room[] rooms = {new Room("Apple", R.drawable.ic_launcher_foreground),
-                                new Room("Banana", R.drawable.ic_launcher_background),
-                                new Room("Orange", R.drawable.ic_launcher_foreground)};
+    private Room[] rooms = {new Room("聊天室一", R.drawable.chat_room),
+                                new Room("聊天室二", R.drawable.chat_room),
+                                new Room("聊天室三", R.drawable.chat_room),
+                                new Room("聊天室四", R.drawable.chat_room),
+                                new Room("聊天室五", R.drawable.chat_room)};
     private List<Room> roomList = new ArrayList<>();
     private RoomAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
@@ -48,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        NavigationView navView = (NavigationView) findViewById(R.id.nav_menu);
+        final NavigationView navView = (NavigationView) findViewById(R.id.nav_menu);
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -67,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this, "FAB clicked", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "这个没什么用", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -89,12 +92,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        navView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()){
+                    case R.id.modify:
+                        setName(navView);
+                }
+                return true;
+            }
+        });
+
+
         // username
 
         SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
         Global.username = pref.getString("name", "");
         if (Global.username.equals("")) {
-            setName();
+            setName(navView);
             Log.e("user", Global.username );
         }
 
@@ -105,13 +120,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void initRooms() {
         roomList.clear();
         for (int i = 0; i < 5; i++) {
-            Random random = new Random();
-            int index = random.nextInt(rooms.length);
-            roomList.add(rooms[index]);
+            roomList.add(rooms[i]);
         }
     }
     // refresh 模拟
@@ -148,13 +160,14 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.search:
-                Toast.makeText(this, "you cliecked Backup", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "努力开发中。。。", Toast.LENGTH_SHORT).show();
                 break;
-            case R.id.delete:
-                Toast.makeText(this, "you cliecked delete", Toast.LENGTH_SHORT).show();
+            case R.id.room_manage:
+                Toast.makeText(this, "努力开发中。。。", Toast.LENGTH_SHORT).show();
                 break;
-            case R.id.setting:
-                Toast.makeText(this, "you cliecked setting", Toast.LENGTH_SHORT).show();
+            case R.id.exit:
+//                Toast.makeText(this, "努力开发中。。。", Toast.LENGTH_SHORT).show();
+                finish();
                 break;
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
@@ -163,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void setName() {
+    private void setName(final NavigationView navView) {
         View view = getLayoutInflater().inflate(R.layout.input_dialog, null);
         final EditText editText = (EditText) view.findViewById(R.id.input_dialog);
         final String[] ret = new String[1];
@@ -175,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
                         //dialog.dismiss();
                         Toast.makeText(MainActivity.this, "必须设置昵称", Toast.LENGTH_SHORT).show();
-                        setName();
+                        setName(navView);
                     }
                 })
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -187,7 +200,9 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("name", content);
                         editor.apply();
                         Global.username = content;
-                        Log.e("name", Global.username );
+                        View headerView = navView.getHeaderView(0);
+                        TextView textview = (TextView) headerView.findViewById(R.id.user);
+                        textview.setText(Global.username);
                         dialog.dismiss();
                     }
                 }).create();
