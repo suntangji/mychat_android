@@ -35,11 +35,11 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
-    private Room[] rooms = {new Room("聊天室一", R.drawable.chat_room),
-                                new Room("聊天室二", R.drawable.chat_room),
-                                new Room("聊天室三", R.drawable.chat_room),
-                                new Room("聊天室四", R.drawable.chat_room),
-                                new Room("聊天室五", R.drawable.chat_room)};
+    private Room[] rooms = {new Room("聊天室一", R.drawable.chat_room, 1),
+                                new Room("聊天室二", R.drawable.chat_room, 2),
+                                new Room("聊天室三", R.drawable.chat_room, 3),
+                                new Room("聊天室四", R.drawable.chat_room, 4),
+                                new Room("聊天室五", R.drawable.chat_room, 5)};
     private List<Room> roomList = new ArrayList<>();
     private RoomAdapter adapter;
     private SwipeRefreshLayout swipeRefresh;
@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRooms() {
         roomList.clear();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < rooms.length; i++) {
             roomList.add(rooms[i]);
         }
     }

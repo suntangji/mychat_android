@@ -1,6 +1,7 @@
 package com.example.suntangji.mychat;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBar;
@@ -49,10 +50,10 @@ public class RoomActivity extends AppCompatActivity {
     private Button send;
     private RecyclerView msgRecyclerView;
     private MsgAdapter adapter;
-
+    public static int roomId;
+    private boolean isConnect = true;
     private static final int UPDATE = 1;
     private static final int ERROR = 0;
-
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -77,6 +78,10 @@ public class RoomActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        Intent intent = getIntent();
+        roomId = intent.getIntExtra("ROOM_ID", -1);
+        Log.e(TAG, roomId +"");
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -119,12 +124,14 @@ public class RoomActivity extends AppCompatActivity {
     }
 
     public void Destory() {
-        sendThread.interrupt();
-        recvThread.interrupt();
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (isConnect) {
+            sendThread.interrupt();
+            recvThread.interrupt();
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         finish();
     }
@@ -184,12 +191,16 @@ public class RoomActivity extends AppCompatActivity {
                         return;
                     }
                     Log.e(TAG, recvMsg );
+                    Gson gson=new Gson();
+                    Json json = gson.fromJson(recvMsg, Json.class);
+                    if (roomId == json.getRoom_id()) {
+                        Message msg = new Message();
+                        msg.what = UPDATE;
+                        msg.arg1 = Msg.TYPE_RECEIVED;
+                        msg.obj = recvMsg;
+                        handler.sendMessage(msg);
+                    }
 
-                    Message msg = new Message();
-                    msg.what = UPDATE;
-                    msg.arg1 = Msg.TYPE_RECEIVED;
-                    msg.obj = recvMsg;
-                    handler.sendMessage(msg);
 
                 }
             }
@@ -200,8 +211,9 @@ public class RoomActivity extends AppCompatActivity {
             public void run() {
                 Log.e(TAG, "run: snedThread");
                 Json default_json = new Json();
-                default_json.setCmd("1");
+                default_json.setCmd(1);
                 default_json.setName(Global.username);
+                default_json.setRoom_id(roomId);
                 default_json.setTo("everyone");
                 default_json.setContent("大家好，我是" + Global.username);
                 Gson default_gson = new Gson();
@@ -229,8 +241,9 @@ public class RoomActivity extends AppCompatActivity {
 
                         Msg msg = msgDeque.poll();
                         Json json = new Json();
-                        json.setCmd("1");
+                        json.setCmd(1);
                         json.setName(Global.username);
+                        json.setRoom_id(roomId);
                         json.setTo("everyone");
                         json.setContent(msg.getContent());
                         Gson gson = new Gson();
@@ -267,6 +280,7 @@ public class RoomActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 Log.d(TAG, "run: NetworkException");
+                isConnect = false;
                 Message msg = new Message();
                 msg.what = ERROR;
                 handler.sendMessage(msg);

@@ -16,21 +16,21 @@ import java.util.List;
 
 public  class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
     private Context mContext;
-    private List<Room> mFruitList;
+    private List<Room> mRoomList;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         CardView cardView;
-        ImageView fruitImage;
-        TextView fruitName;
+        ImageView roomImage;
+        TextView roomName;
         public ViewHolder(View view) {
             super(view);
             cardView = (CardView) view;
-            fruitImage = (ImageView) view.findViewById((R.id.fruit_image));
-            fruitName = (TextView) view.findViewById(R.id.fruit_name);
+            roomImage = (ImageView) view.findViewById((R.id.room_image));
+            roomName = (TextView) view.findViewById(R.id.room_name);
         }
     }
-    public RoomAdapter(List<Room> fruitList) {
-        mFruitList = fruitList;
+    public RoomAdapter(List<Room> roomList) {
+        mRoomList = roomList;
     }
 
     @Override
@@ -44,12 +44,12 @@ public  class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 int position = holder.getAdapterPosition();
-                Room fruit = mFruitList.get(position);
+                Room room = mRoomList.get(position);
                 Intent intent = new Intent(mContext,RoomActivity.class);
 
 //                Intent intent = new Intent(mContext, SingleChatActivity.class);
-//                intent.putExtra(SingleChatActivity.FRUIT_NAME, fruit.getName());
-//                intent.putExtra(SingleChatActivity.FRUIT_IMAGE_ID, fruit.getImageId());
+//                intent.putExtra(SingleChatActivity.FRUIT_NAME, room.getName());
+                intent.putExtra("ROOM_ID", room.getRoomId());
                 mContext.startActivities(new Intent[]{intent});
 
 
@@ -61,13 +61,13 @@ public  class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Room fruit = mFruitList.get(position);
-        holder.fruitName.setText(fruit.getName());
-        Glide.with(mContext).load(fruit.getImageId()).into(holder.fruitImage);
+        Room room = mRoomList.get(position);
+        holder.roomName.setText(room.getName());
+        Glide.with(mContext).load(room.getImageId()).into(holder.roomImage);
     }
 
     @Override
     public int getItemCount() {
-        return mFruitList.size();
+        return mRoomList.size();
     }
 }

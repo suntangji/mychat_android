@@ -20,15 +20,20 @@ import java.util.List;
 public class Room {
     private String name;
     private int imageId;
-    public Room(String name, int imageId) {
+    private int roomId;
+    public Room(String name, int imageId, int roomId) {
         this.name = name;
         this.imageId = imageId;
+        this.roomId = roomId;
     }
     public String getName() {
         return name;
     }
     public int getImageId() {
         return imageId;
+    }
+    public int getRoomId() {
+        return roomId;
     }
 }
 

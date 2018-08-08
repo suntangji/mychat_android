@@ -54,6 +54,8 @@ public class MsgAdapter extends RecyclerView.Adapter<MsgAdapter.ViewHolder> {
             holder.leftMsg.setText(json.getContent());
             holder.otherName.setText(json.getName());
             Log.d("LeftMsg", "onBindViewHolder: " + holder.leftMsg.getText());
+
+
         } else if (msg.getType() == Msg.TYPE_SEND) {
             holder.rightLayout.setVisibility(View.VISIBLE);
             holder.leftLayout.setVisibility(View.GONE);

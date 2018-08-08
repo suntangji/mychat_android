@@ -8,9 +8,9 @@ package com.example.suntangji.mychat;
 public class Json {
     private String name;
     private String content;
-    private String cmd;
+    private int cmd;
     private String to;
-
+    private int room_id;
     public String getName() {
         return name;
     }
@@ -23,10 +23,10 @@ public class Json {
     public void setContent(String content) {
         this.content = content;
     }
-    public String getCmd() {
+    public int getCmd() {
         return cmd;
     }
-    public void setCmd(String cmd) {
+    public void setCmd(int cmd) {
         this.cmd = cmd;
     }
     public String getTo() {
@@ -34,5 +34,11 @@ public class Json {
     }
     public void setTo(String to) {
         this.to = to;
+    }
+    public int getRoom_id() {
+        return room_id;
+    }
+    public  void setRoom_id(int room_id) {
+        this.room_id = room_id;
     }
 }
