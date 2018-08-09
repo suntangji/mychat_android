@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 
 public class RoomActivity extends AppCompatActivity {
     private static final String TAG = "DEBUG";
@@ -48,12 +50,15 @@ public class RoomActivity extends AppCompatActivity {
     private Deque<Msg> msgDeque = new ArrayDeque<>();
     private EditText inputText;
     private Button send;
+    private CircleImageView otherImage;
     private RecyclerView msgRecyclerView;
     private MsgAdapter adapter;
     public static int roomId;
+    private String singleChatName;
     private boolean isConnect = true;
     private static final int UPDATE = 1;
     private static final int ERROR = 0;
+    private static final int SINGLE_CHAT = 2;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -70,8 +75,10 @@ public class RoomActivity extends AppCompatActivity {
                 case ERROR:
                     showError();
                     break;
-                    default:
-                        break;
+                case SINGLE_CHAT:
+                    showSingleChat();
+                default:
+                    break;
             }
         }
     };
@@ -79,7 +86,7 @@ public class RoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
         Intent intent = getIntent();
-        roomId = intent.getIntExtra("ROOM_ID", -1);
+        roomId = intent.getIntExtra("ROOM_ID", 0);
         Log.e(TAG, roomId +"");
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -94,11 +101,14 @@ public class RoomActivity extends AppCompatActivity {
 
         inputText = (EditText) findViewById(R.id.input_text);
         send = (Button) findViewById(R.id.send);
+
         msgRecyclerView = (RecyclerView) findViewById(R.id.msg_recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         msgRecyclerView.setLayoutManager(layoutManager);
         adapter = new MsgAdapter(msgList);
         msgRecyclerView.setAdapter(adapter);
+
+
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,6 +152,19 @@ public class RoomActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Destory();
+    }
+
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Destory();
+        connectThread.start();
+    }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.room_menu, menu);
         return true;
@@ -193,13 +216,20 @@ public class RoomActivity extends AppCompatActivity {
                     Log.e(TAG, recvMsg );
                     Gson gson=new Gson();
                     Json json = gson.fromJson(recvMsg, Json.class);
-                    if (roomId == json.getRoom_id()) {
+                    if (json.getCmd() == 3) {
+                        singleChatName = json.getName();
+                        Message msg = new Message();
+                        msg.what = SINGLE_CHAT;
+                        handler.sendMessage(msg);
+                    }
+                    else if (roomId == json.getRoom_id()) {
                         Message msg = new Message();
                         msg.what = UPDATE;
                         msg.arg1 = Msg.TYPE_RECEIVED;
                         msg.obj = recvMsg;
                         handler.sendMessage(msg);
                     }
+
 
 
                 }
@@ -302,6 +332,7 @@ public class RoomActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int which) {
 //                            Toast.makeText(RoomActivity.this, "点击了取消按钮", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
+
                     }
                 })
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -310,6 +341,56 @@ public class RoomActivity extends AppCompatActivity {
 //                            Toast.makeText(RoomActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         finish();
+                    }
+                }).create();
+        dialog.show();
+    }
+    private void showSingleChat() {
+        AlertDialog dialog = new AlertDialog.Builder(this)
+//                    .setIcon(R.mipmap.icon)//设置标题的图片
+                .setTitle("提示")//设置对话框的标题
+                .setMessage(singleChatName + "想要和你私聊")//设置对话框的内容
+                //设置对话框的按钮
+                .setNegativeButton("拒绝", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+//                            Toast.makeText(RoomActivity.this, "点击了取消按钮", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Thread rufuseThread = new Thread() {
+                            @Override
+                            public void run() {
+                                Log.e(TAG, "run: rufuseThread");
+                                Json default_json = new Json();
+                                default_json.setCmd(3);
+                                default_json.setName(Global.username);
+                                default_json.setRoom_id(roomId);
+                                default_json.setTo(singleChatName);
+                                default_json.setContent("{{CONNECTION DENIED}}");
+                                Gson default_gson = new Gson();
+                                String default_jsonMsg = default_gson.toJson(default_json);
+
+                                try {
+                                    out.write(default_jsonMsg.getBytes());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        };
+                        rufuseThread.start();
+
+                    }
+                })
+                .setPositiveButton("接受", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+//                            Toast.makeText(RoomActivity.this, "点击了确定的按钮", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Intent intent = new Intent(RoomActivity.this,SingleChatActivity.class);
+                        intent.putExtra("USERNAME", singleChatName);
+                        intent.putExtra("ROOM_ID",roomId);
+                        startActivityForResult(intent, 2);
+
+                        //finish();
                     }
                 }).create();
         dialog.show();

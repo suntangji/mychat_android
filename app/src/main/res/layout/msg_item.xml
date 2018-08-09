@@ -14,7 +14,7 @@
         android:gravity="left">
 
         <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/icon_image"
+            android:id="@+id/other_icon"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_centerInParent="true"
