@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'MyChatDev'
+            keyPassword 'mychatdev'
+            storeFile file('C:/Users/suntangji/Documents/MyChat.jks')
+            storePassword 'mychat'
+        }
+    }
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.example.suntangji.mychat"
@@ -14,6 +22,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
         }
     }
 }
